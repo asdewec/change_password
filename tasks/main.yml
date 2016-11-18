@@ -1,2 +1,21 @@
 ---
-# tasks file for change_password
+# change "username" with name you are changing password for    
+    - name: install python 2
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      
+    tasks:
+    - name: list users
+      shell: "cut -d: -f1 /etc/passwd"
+      register: users
+    
+    - debug: var=users.stdout_lines
+
+    - name: return true if user is found on server
+      debug: msg="true"
+      when: users.stdout.find('username') != -1
+
+    - name: require user to change password if name found is true
+      command: chage -d 0 {{ item }}
+      with_items:
+         - username
+      when: users.stdout.find('username') != -1
